@@ -1,0 +1,88 @@
+#!/bin/bash
+
+# Function to check DNS record
+check_dns_record() {
+    record_type="$1"
+    domain="$2"
+    
+    echo "Checking $record_type record for $domain:"
+    result=$(dig +short "$domain" "$record_type")
+    if [ -z "$result" ]; then
+        echo "No $record_type record found."
+    else
+        echo "$result"
+    fi
+    echo
+}
+
+# Function to check SPF record
+check_spf_record() {
+    domain="$1"
+    
+    echo "Checking SPF record for $domain:"
+    result=$(dig +short TXT "$domain" | grep "v=spf1")
+    if [ -z "$result" ]; then
+        echo "No SPF record found."
+    else
+        echo "$result"
+    fi
+    echo
+}
+
+# Function to check DKIM record
+check_dkim_record() {
+    domain="$1"
+    
+    echo "Checking DKIM record for $domain:"
+    result=$(dig +short TXT "default._domainkey.$domain")
+    if [ -z "$result" ]; then
+        echo "No DKIM record found."
+    else
+        echo "$result"
+    fi
+    echo
+}
+
+# Function to check DMARC record
+check_dmarc_record() {
+    domain="$1"
+    
+    echo "Checking DMARC record for $domain:"
+    result=$(dig +short TXT "_dmarc.$domain")
+    if [ -z "$result" ]; then
+        echo "No DMARC record found."
+    else
+        echo "$result"
+    fi
+    echo
+}
+
+# Function to get registrar information
+get_registrar_info() {
+    domain="$1"
+    
+    echo "Getting registrar information for $domain:"
+    result=$(whois "$domain" | grep -iE "Registrar:|Expiry Date:")
+    if [ -z "$result" ]; then
+        echo "No registrar information found."
+    else
+        echo "$result"
+    fi
+    echo
+}
+
+# Main script
+read -p "Enter the domain to verify: " domain
+
+# Check DNS records
+check_dns_record "NS" "$domain"
+check_dns_record "A" "$domain"
+
+# Check SPF, DKIM, and DMARC records
+check_spf_record "$domain"
+check_dkim_record "$domain"
+check_dmarc_record "$domain"
+
+# Get registrar information
+get_registrar_info "$domain"
+
